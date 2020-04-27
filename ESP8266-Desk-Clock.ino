@@ -27,7 +27,7 @@ DHT dht(5, DHT11);  //DHT sensor pin GPIO 5 (D1)
 String      weatherapikey   = "0000000000000000000000000000";   //  openweathermap.org api key
 String      weatherlocation = "304782";                             //  Your city location code. Example Marmaris/Turkey 304782 https://openweathermap.org/city/304782
 String      weatherunit     = "metric";                             //  metric or imperial
-const char* ssid            = "Dijitaller.com";                     //  Wifi name
+const char* ssid            = "ahmetozer.org";                     //  Wifi name
 const char* password        = "ahmetozer.org";                       //  Wifi password
 int         gmtsec          = 10800;                                //  add seconds to utc time . 3600 second per hour.
 
@@ -41,7 +41,7 @@ float hic;
 
 // Time SYNC
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "tr.pool.ntp.org", gmtsec, 60000);
+NTPClient timeClient(ntpUDP, "time.cloudflare.com", gmtsec, 60000);
 int t;
 // OLED
 #include "SSD1306Wire.h" // legacy include: `#include "SSD1306.h"`
@@ -53,7 +53,7 @@ int t;
 
 SSD1306Wire  display(0x3c, D3, D2);       // pin settings
 OLEDDisplayUi ui ( &display );
-int screenW = 128;                        
+int screenW = 128;
 int screenH = 64;
 int clockCenterX = screenW/2;
 int clockCenterY = ((screenH-16)/2)+16;   // top yellow part is 16 px height
@@ -136,7 +136,7 @@ void weathernow(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int1
      return;
     }
     dd = 1;
-  } 
+  }
 
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_16);
@@ -159,7 +159,7 @@ int ms8;
 /*
  * Server Ping Adress
  */
- 
+
 void pings(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
   if(aa == 0) {
     Ping.ping("8.8.8.8", 1);
@@ -181,7 +181,7 @@ void pings(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y
   }
   aa = aa + 1;
   if (aa == 100) {
-    aa = 0; 
+    aa = 0;
   }
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_10);
@@ -235,7 +235,7 @@ void setup() {
   //  NTP Time update
   timeClient.update();
   setTime(timeClient.getEpochTime());
-  
+
   //  OTA Update
   ArduinoOTA.setHostname("Desk-Clock");
   // No authentication by default
@@ -274,29 +274,29 @@ void setup() {
 
 void loop() {
   ArduinoOTA.handle();
-  
+
   int remainingTimeBudget = ui.update();
-  
+
   if (remainingTimeBudget > 0) {
     // You can do some work here
     // Don't do stuff if you are below your
     // time budget.
     delay(remainingTimeBudget);
-  }  
+  }
 }
 
 String weatherapin;
 
 void weatherapi(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
 StaticJsonBuffer<1200> jsonBuffer;
-if (wapi == 0){  
+if (wapi == 0){
     HTTPClient http;  //Declare an object of class HTTPClient
     http.begin("http://api.openweathermap.org/data/2.5/weather?id="+weatherlocation+"&appid="+weatherapikey+"&units="+weatherunit);  //Specify request destination
     int httpCode = http.GET();
     weatherapin = http.getString();
     http.end();   //Close connection
     wapi = 1;
-    } 
+    }
         //Serial.println(weatherapin);
         JsonObject& owm_data = jsonBuffer.parseObject(weatherapin);
         if (!owm_data.success()) {
@@ -307,12 +307,12 @@ if (wapi == 0){
         String temp_min = owm_data["main"]["temp_min"];
         String temp_max = owm_data["main"]["temp_max"];
         String temp_des = owm_data["weather"][0]["main"];
-        
+
         String humidity = owm_data["main"]["humidity"];
         String pressure = owm_data["main"]["pressure"];
 
         String wname = "Sun";
-        
+
         String wind_s =   owm_data["wind"]["speed"];
         String wind_deg = owm_data["wind"]["deg"];
         int sunrise  = owm_data["sys"]["sunrise"];
@@ -320,7 +320,7 @@ if (wapi == 0){
         sunrise = sunrise + gmtsec;
         sunset = sunset + gmtsec;
 
-  
+
   display->setFont(ArialMT_Plain_10);
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->drawString(clockCenterX + x , 10 + y , temp+"C°"+" Min "+ temp_min+" Max "+temp_max  );
@@ -333,7 +333,7 @@ int nettime = 0;
 
 void netusage(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
 StaticJsonBuffer<400> jsonBuffer;
-    if (nettime == 0){  
+    if (nettime == 0){
       HTTPClient http;  //Declare an object of class HTTPClient
       http.begin("http://10.0.0.5:777/desk-clock.php");  //Do not forget this settings. İf you dont use a this function you can remove on line 190 netusage and line 193 int frameCount = 4;
       int httpCode = http.GET();
@@ -354,13 +354,13 @@ StaticJsonBuffer<400> jsonBuffer;
         String ppp0tx = owm_data["ppp0"]["up"];
         String ppp0rxs = owm_data["ppp0"]["rxs"];
         String ppp0txs = owm_data["ppp0"]["txs"];
-        
+
         String sit1rx = owm_data["sit1"]["down"];
         String sit1tx = owm_data["sit1"]["up"];
         String sit1rxs = owm_data["sit1"]["rxs"];
         String sit1txs = owm_data["sit1"]["txs"];
 
-  
+
   display->setFont(ArialMT_Plain_10);
   display->setTextAlignment(TEXT_ALIGN_LEFT);
   display->drawString(x , 10 + y , "TT "+ppp0rxs+" "+ppp0txs);
@@ -369,5 +369,3 @@ StaticJsonBuffer<400> jsonBuffer;
   display->drawString(x , 40 + y , sit1rx+" "+sit1tx);
 
 }
-
-
